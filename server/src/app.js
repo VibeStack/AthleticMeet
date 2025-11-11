@@ -39,5 +39,10 @@ import otpRouter from "./routes/emailOtpGenerator.routes.js"
 app.use("/api/v1/users",userRouter)
 app.use("/api/v1/otp", otpRouter);
 
+// ping route
+app.get("/ping",(req,res)=>{
+  res.status(200).send("OK");
+})
+
 
 export { app };
