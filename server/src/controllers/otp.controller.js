@@ -1,6 +1,6 @@
-import nodemailer from "nodemailer";
 import bcrypt from "bcrypt";
 import { User } from "../models/User.model.js";
+import { Resend } from "resend";
 
 const otpStore = new Map(); // key: email, value: { otp, expiryTime, userData }
 
@@ -38,7 +38,7 @@ export const sendOtp = async (req, res) => {
     // Hash password before storing
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Temporarily store all data until OTP verified
+    // Temporarily store user until OTP verified
     otpStore.set(email, {
       otp,
       expiryTime,
@@ -57,19 +57,11 @@ export const sendOtp = async (req, res) => {
       },
     });
 
-    // Send OTP via email
-    const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 587,
-      secure: false,
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
+    // ✅ Send OTP using Resend
+    const resend = new Resend(process.env.RESEND_API_KEY);
 
-    await transporter.sendMail({
-      from: `"Athletix 2025" <${process.env.EMAIL_USER}>`,
+    await resend.emails.send({
+      from: "Athletix 2025 <onboarding@resend.dev>",
       to: email,
       subject: "Athletix 2025 - Verify Your Email",
       html: `
@@ -89,8 +81,7 @@ export const sendOtp = async (req, res) => {
       message: "OTP sent successfully to your email.",
       email,
     });
-  } 
-  catch (error) {
+  } catch (error) {
     console.error("Error sending OTP:", error);
     res.status(500).json({ error: "Failed to send OTP" });
   }
