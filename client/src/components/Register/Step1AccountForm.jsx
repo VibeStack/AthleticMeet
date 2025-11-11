@@ -109,12 +109,6 @@ export default function Step1AccountForm({ nextStep }) {
 
       {/* Submit Button */}
       <button
-        type="submit"
-        className="w-full mt-6 py-3 px-4 bg-linear-to-r from-blue-500 to-blue-600 text-white font-bold rounded-lg shadow-md hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200"
-      >
-        Send Email OTP
-      </button>
-      <button
           type="submit"
           className={`w-full mt-6 py-3 px-4 bg-linear-to-r from-blue-500 to-blue-600 text-white font-bold rounded-lg shadow-md hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200 flex items-center justify-center gap-2 ${
             isSubmitting
@@ -148,7 +142,7 @@ export default function Step1AccountForm({ nextStep }) {
               Submitting...
             </>
           ) : (
-            "Login"
+            "Send Email OTP"
           )}
         </button>
 
