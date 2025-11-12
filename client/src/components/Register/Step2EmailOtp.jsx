@@ -34,10 +34,9 @@ export default function Step2EmailOtp({ nextStep, prevStep }) {
 
       setLoading(true);
       setMessage(isResend ? "Resending OTP..." : "Sending OTP...");
-      console.log(message)
 
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/otp/send`,
+        `${import.meta.env.VITE_API_URL}/otp/registerOtpSender`,
         { email }
       );
 
@@ -48,10 +47,8 @@ export default function Step2EmailOtp({ nextStep, prevStep }) {
           ? "A new OTP has been sent to your email."
           : "OTP sent successfully to your email."
       );
-      console.log("✅ OTP Sent:", response.data);
     } 
     catch (error) {
-      console.error("❌ Error sending OTP:", error);
       setMessage("Failed to send OTP. Please try again.");
     } finally {
       setLoading(false);
@@ -70,15 +67,13 @@ export default function Step2EmailOtp({ nextStep, prevStep }) {
       setLoading(true);
       setMessage("Verifying OTP...");
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/otp/verify`,
+        `${import.meta.env.VITE_API_URL}/otp/registerOtpVerifier`,
         { email, otp }
       );
 
-      console.log("✅ OTP Verified:", response.data);
       setMessage("✅ OTP verified successfully!");
       nextStep();
     } catch (error) {
-      console.error("❌ OTP verification failed:", error);
       setMessage("❌ Invalid or expired OTP. Please try again.");
     } finally {
       setLoading(false);

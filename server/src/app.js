@@ -34,6 +34,7 @@ app.use(
 // router import
 import userRouter from "./routes/user.routes.js"
 import otpRouter from "./routes/emailOtpGenerator.routes.js"
+import { errorHandler } from "./middlewares/error.middleware.js";
 
 // router decleration
 app.use("/api/v1/users",userRouter)
@@ -43,6 +44,8 @@ app.use("/api/v1/otp", otpRouter);
 app.get("/ping",(req,res)=>{
   res.status(200).send("OK");
 })
+
+app.use(errorHandler);
 
 
 export { app };

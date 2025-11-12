@@ -71,7 +71,7 @@ export const CheckIcon = (
       </svg>
     </div>
 
-    <style jsx>{`
+    <style>{`
       @keyframes pop {
         0% {
           transform: scale(0);

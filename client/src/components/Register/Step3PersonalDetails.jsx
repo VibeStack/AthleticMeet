@@ -79,8 +79,6 @@ export default function Step3PersonalDetails({ nextStep, prevStep }) {
       Object.entries(mergedData).filter(([key]) => !key.startsWith("otp"))
     );
 
-    console.log("🧾 Final User Data to Send =", fullUserData);
-
     try {
       setLoading(true);
       setMessage("Saving your registration details...");
@@ -91,14 +89,10 @@ export default function Step3PersonalDetails({ nextStep, prevStep }) {
         fullUserData
       );
 
-      console.log("✅ User details saved:", response.data);
       setMessage("Registration completed successfully!");
       nextStep();
     } catch (error) {
-      console.error("❌ Error saving user data:", error);
-      setMessage(
-        error.response?.data?.message || "Failed to complete registration."
-      );
+      setMessage("Failed to complete registration.");
     } finally {
       setLoading(false);
     }

@@ -8,19 +8,27 @@ export default function Step1AccountForm({ nextStep }) {
   const {
     register,
     handleSubmit,
-    formState: { errors,isSubmitting },
+    formState: { errors, isSubmitting },
   } = useFormContext();
 
   const onSubmit = async (data) => {
     const API_URL = import.meta.env.VITE_API_URL;
     try {
-      console.log(data);
-      const response = await axios.post(`${API_URL}/otp/send`, data, {
-        withCredentials: true,
-      });
-      console.log("✅ OTP Sent:", response.data);
-      alert("OTP sent to your email. Please verify to complete registration.");
-      nextStep();
+      const response = await axios.post(
+        `${API_URL}/otp/registerOtpSender`,
+        data,
+        {
+          withCredentials: true,
+        }
+      );
+      if (response.data?.success) {
+        alert(
+          "✅ OTP sent to your email. Please verify to complete registration."
+        );
+        nextStep();
+      } else {
+        alert("⚠️ Could not send OTP. Please try again.");
+      }
     } catch (error) {
       if (error.response) {
         console.error("❌ Error:", error.response.data);
@@ -83,10 +91,10 @@ export default function Step1AccountForm({ nextStep }) {
         register={register}
         rules={{
           required: { value: true, message: "Email is required" },
-          pattern: {
-            value: /^[a-zA-Z0-9._%+-]+@gndec\.ac\.in$/,
-            message: "Valid College Mail must end with @gndec.ac.in",
-          },
+          // pattern: {
+          //   value: /^[a-zA-Z0-9._%+-]+@gndec\.ac\.in$/,
+          //   message: "Valid College Mail must end with @gndec.ac.in",
+          // },
         }}
         errors={errors}
       />
@@ -109,42 +117,42 @@ export default function Step1AccountForm({ nextStep }) {
 
       {/* Submit Button */}
       <button
-          type="submit"
-          className={`w-full mt-6 py-3 px-4 bg-linear-to-r from-blue-500 to-blue-600 text-white font-bold rounded-lg shadow-md hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200 flex items-center justify-center gap-2 ${
-            isSubmitting
-              ? "bg-blue-600 cursor-not-allowed"
-              : "bg-blue-500 hover:bg-blue-600"
-          }`}
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? (
-            <>
-              <svg
-                className="animate-spin h-5 w-5 text-white"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                ></circle>
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                ></path>
-              </svg>
-              Submitting...
-            </>
-          ) : (
-            "Send Email OTP"
-          )}
-        </button>
+        type="submit"
+        className={`w-full mt-6 py-3 px-4 bg-linear-to-r from-blue-500 to-blue-600 text-white font-bold rounded-lg shadow-md hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200 flex items-center justify-center gap-2 ${
+          isSubmitting
+            ? "bg-blue-600 cursor-not-allowed"
+            : "bg-blue-500 hover:bg-blue-600"
+        }`}
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? (
+          <>
+            <svg
+              className="animate-spin h-5 w-5 text-white"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+              ></path>
+            </svg>
+            Submitting...
+          </>
+        ) : (
+          "Send Email OTP"
+        )}
+      </button>
 
       {/* Footer */}
       <p className="text-sm text-gray-600 text-center mt-6">

@@ -39,6 +39,7 @@ const registerUser = asyncHandler(async (req, res) => {
     user.urn = urn || user.urn;
     user.year = year || user.year;
     user.phone = phone || user.phone;
+    user.isUserVerified = true;
 
     await user.save();
     return res
@@ -59,7 +60,7 @@ const registerUser = asyncHandler(async (req, res) => {
     urn,
     year,
     phone,
-    isEmailVerified: true, // since OTP verified already
+    isUserVerified: true, // since OTP verified already
   });
 
   return res.status(201).json({
@@ -67,9 +68,6 @@ const registerUser = asyncHandler(async (req, res) => {
     message: "User registered successfully.",
     user: {
       id: newUser._id,
-      username: newUser.username,
-      email: newUser.email,
-      fullname: newUser.fullname,
     },
   });
 });
