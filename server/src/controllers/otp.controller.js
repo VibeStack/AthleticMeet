@@ -1,58 +1,8 @@
+import nodemailer from "nodemailer";
 import bcrypt from "bcrypt";
 import { User } from "../models/User.model.js";
-import nodemailer from "nodemailer";
-import { google } from "googleapis";
-import dotenv from "dotenv";
-
-dotenv.config();
 
 const otpStore = new Map(); // key: email, value: { otp, expiryTime, userData }
-
-// ---------------- GOOGLE OAUTH CONFIG ----------------
-const CLIENT_ID = process.env.GMAIL_CLIENT_ID;
-const CLIENT_SECRET = process.env.GMAIL_CLIENT_SECRET;
-const REFRESH_TOKEN = process.env.GMAIL_REFRESH_TOKEN;
-const USER_EMAIL = process.env.GMAIL_USER;
-
-const oAuth2Client = new google.auth.OAuth2(
-  CLIENT_ID,
-  CLIENT_SECRET,
-  "https://developers.google.com/oauthplayground"
-);
-oAuth2Client.setCredentials({ refresh_token: REFRESH_TOKEN });
-
-// ✅ Reusable Gmail Send Function
-const sendEmail = async (to, subject, htmlContent) => {
-  try {
-    const accessToken = await oAuth2Client.getAccessToken();
-
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        type: "OAuth2",
-        user: USER_EMAIL,
-        clientId: CLIENT_ID,
-        clientSecret: CLIENT_SECRET,
-        refreshToken: REFRESH_TOKEN,
-        accessToken: accessToken.token,
-      },
-    });
-
-    const mailOptions = {
-      from: `Athletix 2025 <${USER_EMAIL}>`,
-      to,
-      subject,
-      html: htmlContent,
-    };
-
-    const result = await transporter.sendMail(mailOptions);
-    console.log("✅ Email sent successfully:", result.response);
-    return result;
-  } catch (error) {
-    console.error("❌ Error sending email:", error);
-    throw error;
-  }
-};
 
 /* ------------------------ SEND OTP ------------------------ */
 export const sendOtp = async (req, res) => {
@@ -72,19 +22,13 @@ export const sendOtp = async (req, res) => {
     } = req.body;
 
     if (!email || !username || !password) {
-      return res.status(400).json({
-        error: "Username, email, and password are required.",
-      });
+      return res.status(400).json({ error: "Username, email, and password are required." });
     }
 
     // Check if user already exists
-    const existingUser = await User.findOne({
-      $or: [{ email }, { username }],
-    });
+    const existingUser = await User.findOne({ $or: [{ email }, { username }] });
     if (existingUser) {
-      return res
-        .status(400)
-        .json({ error: "User with this email or username already exists." });
+      return res.status(400).json({ error: "User with this email or username already exists." });
     }
 
     // Generate OTP
@@ -94,7 +38,7 @@ export const sendOtp = async (req, res) => {
     // Hash password before storing
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Temporarily store user until OTP verified
+    // Temporarily store all data until OTP verified
     otpStore.set(email, {
       otp,
       expiryTime,
@@ -113,27 +57,39 @@ export const sendOtp = async (req, res) => {
       },
     });
 
-    // ✅ Send OTP using Gmail API
-    const htmlContent = `
-      <div style="font-family: Arial; padding: 20px;">
-        <h2 style="color: #2b6cb0;">Email Verification</h2>
-        <p>Your OTP for verification is:</p>
-        <h1 style="letter-spacing: 3px; color: #2f855a;">${otp}</h1>
-        <p>This OTP will expire in 5 minutes.</p>
-        <br/>
-        <p>- Team Athletix 2025</p>
-      </div>
-    `;
+    // Send OTP via email
+    const transporter = nodemailer.createTransport({
+      service:"gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
 
-    await sendEmail(email, "Athletix 2025 - Verify Your Email", htmlContent);
+    await transporter.sendMail({
+      from: `"Athletix 2025" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Athletix 2025 - Verify Your Email",
+      html: `
+        <div style="font-family: Arial; padding: 20px;">
+          <h2 style="color: #2b6cb0;">Email Verification</h2>
+          <p>Your OTP for verification is:</p>
+          <h1 style="letter-spacing: 3px; color: #2f855a;">${otp}</h1>
+          <p>This OTP will expire in 5 minutes.</p>
+          <br/>
+          <p>- Team Athletix 2025</p>
+        </div>
+      `,
+    });
 
     return res.status(200).json({
       success: true,
       message: "OTP sent successfully to your email.",
       email,
     });
-  } catch (error) {
-    console.error("❌ Error sending OTP:", error);
+  } 
+  catch (error) {
+    console.error("Error sending OTP:", error);
     res.status(500).json({ error: "Failed to send OTP" });
   }
 };
@@ -144,17 +100,13 @@ export const verifyOtp = async (req, res) => {
     const { email, otp } = req.body;
 
     if (!email || !otp) {
-      return res
-        .status(400)
-        .json({ error: "Email and OTP are required." });
+      return res.status(400).json({ error: "Email and OTP are required." });
     }
 
     const otpData = otpStore.get(email);
 
     if (!otpData) {
-      return res
-        .status(400)
-        .json({ error: "No OTP found for this email." });
+      return res.status(400).json({ error: "No OTP found for this email." });
     }
 
     // Check if OTP expired
@@ -168,21 +120,27 @@ export const verifyOtp = async (req, res) => {
       return res.status(400).json({ error: "Invalid OTP." });
     }
 
-    // ✅ If verified: create or update user
+    // ✅ If verified: either create new or update existing user
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
+      // Update existing user (if already created partially)
       await User.updateOne(
         { email },
-        { ...otpData.userData, isEmailVerified: true }
+        {
+          ...otpData.userData,
+          isEmailVerified: true,
+        }
       );
     } else {
+      // Create new user (if not created yet)
       await User.create({
         ...otpData.userData,
         isEmailVerified: true,
       });
     }
 
+    // Cleanup memory store
     otpStore.delete(email);
 
     return res.status(200).json({
@@ -190,7 +148,7 @@ export const verifyOtp = async (req, res) => {
       message: "OTP verified and user details saved successfully!",
     });
   } catch (error) {
-    console.error("❌ Error verifying OTP:", error);
+    console.error("Error verifying OTP:", error);
     res.status(500).json({ error: "Failed to verify OTP" });
   }
 };
