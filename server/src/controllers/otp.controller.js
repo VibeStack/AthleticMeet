@@ -26,7 +26,7 @@ export const registerOtpSender = async (req, res, next) => {
     if (existingUser) {
       if (existingUser.isUserVerified === false) {
         const { otp, expiryTime } = otpGenerator();
-        otpStore.set(email, { username, email, password, otp, expiryTime });
+        registrationOtpStore.set(email, { username, email, password, otp, expiryTime });
 
         await mailSender(email, otp);
 
@@ -43,7 +43,7 @@ export const registerOtpSender = async (req, res, next) => {
     }
 
     const { otp, expiryTime } = otpGenerator();
-    otpStore.set(email, { username, email, password, otp, expiryTime });
+    registrationOtpStore.set(email, { username, email, password, otp, expiryTime });
 
     await mailSender(email, otp);
 
