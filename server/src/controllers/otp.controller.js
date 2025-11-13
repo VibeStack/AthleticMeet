@@ -4,6 +4,7 @@ import { mailSender } from "../utils/mailSender.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { Otp } from "../models/Otp.model.js";
+import bcrypt from "bcrypt"
 
 let isUserDetailsComplete = "false";
 
@@ -18,7 +19,7 @@ export const registerOtpSender = async (req, res, next) => {
       );
     }
 
-    const existingUser = await User.findOne({ $or: [{ email }, { username }] });
+    const existingUser = await User.findOne({ $or: [{ email }, { username }] }).select("+password");
 
     if (existingUser && existingUser.isUserDetailsComplete === "false") {
       const { otp, expiryTime } = otpGenerator();
@@ -37,6 +38,19 @@ export const registerOtpSender = async (req, res, next) => {
     }
 
     if (existingUser && existingUser.isUserDetailsComplete === "partial") {
+      const isPasswordCorrect = await bcrypt.compare(
+        password,
+        existingUser.password
+      );
+
+      if (!isPasswordCorrect) {
+        return res
+          .status(401)
+          .json(
+            new ApiResponse(401, null, "❌ Incorrect password. Please try again.")
+          );
+      }
+
       return res
         .status(200)
         .json(

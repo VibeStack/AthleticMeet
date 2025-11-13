@@ -32,13 +32,12 @@ export default function Step1AccountForm({ nextStep,setStep }) {
         return;
       }
 
-      console.log(response.data)
-
       if(response.data?.message === "Your email is already verified. Please complete your personal details."){
         alert("⚠️ Please complete your personal details.");
         setStep(3);
         return;
       }
+
 
       alert("⚠️ Could not send OTP. Please try again.");
     } catch (error) {
