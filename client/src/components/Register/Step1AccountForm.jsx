@@ -1,15 +1,18 @@
 // components/Register/Step1AccountForm.jsx
 import React from "react";
 import { useFormContext } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
 import InputField from "./InputField";
 import axios from "axios";
 
-export default function Step1AccountForm({ nextStep }) {
+export default function Step1AccountForm({ nextStep,setStep }) {
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useFormContext();
+
+  const navigate = useNavigate();
 
   const onSubmit = async (data) => {
     const API_URL = import.meta.env.VITE_API_URL;
@@ -21,18 +24,36 @@ export default function Step1AccountForm({ nextStep }) {
           withCredentials: true,
         }
       );
-      if (response.data?.success) {
-        alert(
-          "✅ OTP sent to your email. Please verify to complete registration."
-        );
+
+      
+      if (response.data?.message === "OTP sent successfully! Please verify your email."){
+        alert("✅ OTP sent to your email. Please verify to continue.");
         nextStep();
-      } else {
-        alert("⚠️ Could not send OTP. Please try again.");
+        return;
       }
+
+      console.log(response.data)
+
+      if(response.data?.message === "Your email is already verified. Please complete your personal details."){
+        alert("⚠️ Please complete your personal details.");
+        setStep(3);
+        return;
+      }
+
+      alert("⚠️ Could not send OTP. Please try again.");
     } catch (error) {
       if (error.response) {
-        console.error("❌ Error:", error.response.data);
-        alert(error.response.data.error || "Failed to send OTP.");
+        const message = error.response.data.message;
+        if (
+          message ===
+          "User with this email or username already exists and is verified"
+        ) {
+          alert("⚠️ User already exists and is verified. Please login.");
+          navigate("/login");
+          return;
+        }
+
+        alert(message || "Failed to send OTP.");
       } else {
         alert("Network error. Please try again later.");
       }
@@ -91,10 +112,10 @@ export default function Step1AccountForm({ nextStep }) {
         register={register}
         rules={{
           required: { value: true, message: "Email is required" },
-          pattern: {
-            value: /^[a-zA-Z0-9._%+-]+@gndec\.ac\.in$/,
-            message: "Valid College Mail must end with @gndec.ac.in",
-          },
+          // pattern: {
+          //   value: /^[a-zA-Z0-9._%+-]+@gndec\.ac\.in$/,
+          //   message: "Valid College Mail must end with @gndec.ac.in",
+          // },
         }}
         errors={errors}
       />

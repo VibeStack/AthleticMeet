@@ -22,7 +22,7 @@ export default function RegisterPage() {
     <FormProvider {...methods}>
       {step < 4 ? (
         <div className="p-4 sm:p-8 h-screen w-screen flex justify-center items-center">
-          {step === 1 && <Step1AccountForm nextStep={nextStep} />}
+          {step === 1 && <Step1AccountForm nextStep={nextStep} setStep={setStep} />}
           {step === 2 && <Step2EmailOtp nextStep={nextStep} prevStep={prevStep} />}
           {step === 3 && (
             <Step3PersonalDetails

@@ -39,7 +39,7 @@ const registerUser = asyncHandler(async (req, res) => {
     user.urn = urn || user.urn;
     user.year = year || user.year;
     user.phone = phone || user.phone;
-    user.isUserVerified = true;
+    user.isUserDetailsComplete = true;
 
     await user.save();
     return res
@@ -60,7 +60,7 @@ const registerUser = asyncHandler(async (req, res) => {
     urn,
     year,
     phone,
-    isUserVerified: true, // since OTP verified already
+    isUserDetailsComplete: true, // since OTP verified already
   });
 
   return res.status(201).json({

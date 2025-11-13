@@ -1,14 +1,11 @@
-import nodemailer from "nodemailer";
-import bcrypt from "bcrypt";
 import { User } from "../models/User.model.js";
 import { otpGenerator } from "../utils/otpGenerator.js";
 import { mailSender } from "../utils/mailSender.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import { Otp } from "../models/Otp.model.js";
 
-const registrationOtpStore = new Map();
-const loginOtpStore = new Map();
-let isUserVerified = false;
+let isUserDetailsComplete = "false";
 
 export const registerOtpSender = async (req, res, next) => {
   try {
@@ -23,36 +20,58 @@ export const registerOtpSender = async (req, res, next) => {
 
     const existingUser = await User.findOne({ $or: [{ email }, { username }] });
 
-    if (existingUser) {
-      if (existingUser.isUserVerified === false) {
-        const { otp, expiryTime } = otpGenerator();
-        registrationOtpStore.set(email, { username, email, password, otp, expiryTime });
+    if (existingUser && existingUser.isUserDetailsComplete === "false") {
+      const { otp, expiryTime } = otpGenerator();
 
-        await mailSender(email, otp);
-
-        return res
-          .status(200)
-          .json(new ApiResponse(200, null, "OTP resent successfully!"));
-      }
-
-      throw new ApiError(
-        409,
-        "User with this email or username already exists and is verified",
-        ["User with this email or username already exists and is verified."]
+      await Otp.findOneAndUpdate(
+        { email, purpose: "registration" },
+        { otp, expiryTime },
+        { upsert: true }
       );
+
+      await mailSender(email, otp);
+
+      return res
+        .status(200)
+        .json(new ApiResponse(200, null, "OTP resent successfully!"));
+    }
+
+    if (existingUser && existingUser.isUserDetailsComplete === "partial") {
+      return res
+        .status(200)
+        .json(
+          new ApiResponse(
+            200,
+            { step: "Move To Personal Details Section" },
+            "Your email is already verified. Please complete your personal details."
+          )
+        );
+    }
+
+    if (existingUser) {
+      return res.status(409).json({
+        success: false,
+        message:
+          "User with this email or username already exists and is verified",
+      });
     }
 
     const { otp, expiryTime } = otpGenerator();
-    registrationOtpStore.set(email, { username, email, password, otp, expiryTime });
 
-    await mailSender(email, otp);
+    await Otp.create({
+      email,
+      otp,
+      expiryTime,
+      purpose: "registration",
+    });
 
     await User.create({
       username,
       email,
       password,
-      isUserVerified: false,
+      isUserDetailsComplete: "false",
     });
+    await mailSender(email, otp);
 
     return res
       .status(200)
@@ -74,39 +93,39 @@ export const registerOtpSender = async (req, res, next) => {
 export const registerOtpVerifier = async (req, res, next) => {
   try {
     const { email, otp } = req.body;
-    if (!email || !otp) {
-      throw new ApiError(400, "Email and OTP are required");
-    }
 
-    if (!registrationOtpStore.get(email)) {
+    if (!email || !otp) throw new ApiError(400, "Email and OTP are required");
+
+    const otpData = await Otp.findOne({ email, purpose: "registration" });
+
+    if (!otpData)
       throw new ApiError(404, "No OTP found. Please request a new one.");
-    }
 
-    if (Date.now() > registrationOtpStore.expiryTime) {
-      registrationOtpStore.delete(email);
+    if (Date.now() > otpData.expiryTime) {
+      await Otp.deleteOne({ email, purpose: "registration" });
       throw new ApiError(410, "OTP has expired. Please request a new one.");
     }
-    if (Number(otp) === Number(registrationOtpStore.get(email).otp)) {
-      await User.findOneAndUpdate(
-        { $or: [{ email }] },
-        { $set: { isUserVerified: true } }
-      );
 
-      isUserVerified = true;
-      registrationOtpStore.delete(email);
-
-      return res
-        .status(200)
-        .json(
-          new ApiResponse(
-            200,
-            null,
-            "✅ OTP verified successfully! Registration complete."
-          )
-        );
-    } else {
-      throw new ApiError(400, "Invalid OTP. Please try again.");
+    if (Number(otp) !== Number(otpData.otp)) {
+      throw new ApiError(400, "Invalid OTP.");
     }
+
+    await User.findOneAndUpdate(
+      { email },
+      { $set: { isUserDetailsComplete: "partial" } }
+    );
+
+    await Otp.deleteOne({ email, purpose: "registration" });
+
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          null,
+          "OTP verified successfully! Registration complete."
+        )
+      );
   } catch (error) {
     next(error);
   }
@@ -116,26 +135,24 @@ export const loginOtpSender = async (req, res, next) => {
   try {
     const { email } = req.body;
 
-    if (!email) {
-      throw new ApiError(400, "Email is required for login.");
-    }
+    if (!email) throw new ApiError(400, "Email required");
 
     const existingUser = await User.findOne({ email });
-    if (!existingUser) {
-      throw new ApiError(404, "No account found with this email.");
-    }
 
-    if (existingUser.isUserVerified !== true) {
-      throw new ApiError(
-        403,
-        "Your email is not verified. Please complete registration first."
-      );
-    }
+    if (!existingUser)
+      throw new ApiError(404, "No account found with this email");
+
+    if (!existingUser.isUserDetailsComplete)
+      throw new ApiError(403, "Email not verified");
 
     const { otp, expiryTime } = otpGenerator();
 
-    loginOtpStore.set(email, { otp, expiryTime });
-    
+    await Otp.findOneAndUpdate(
+      { email, purpose: "login" },
+      { otp, expiryTime },
+      { upsert: true }
+    );
+
     await mailSender(email, otp);
 
     return res
@@ -148,10 +165,9 @@ export const loginOtpSender = async (req, res, next) => {
         )
       );
   } catch (error) {
-    if (!(error instanceof ApiError)) {
-      error = new ApiError(500, "Internal Server Error", [error.message]);
-    }
-    next(error);
+    next(
+      error instanceof ApiError ? error : new ApiError(500, "Internal Error")
+    );
   }
 };
 
@@ -159,34 +175,29 @@ export const loginOtpVerifier = async (req, res, next) => {
   try {
     const { email, otp } = req.body;
 
-    if (!email || !otp) {
-      throw new ApiError(400, "Email and OTP are required for verification.");
-    }
+    if (!email || !otp) throw new ApiError(400, "Email and OTP are required");
 
-    const storedOtpData = loginOtpStore.get(email);
-    if (!storedOtpData) {
-      throw new ApiError(404, "No OTP found for this email. Please request a new one.");
-    }
+    const otpData = await Otp.findOne({ email, purpose: "login" });
 
-    if (Date.now() > storedOtpData.expiryTime) {
-      loginOtpStore.delete(email);
+    if (!otpData)
+      throw new ApiError(
+        404,
+        "No OTP found for this email. Please request a new one."
+      );
+
+    if (Date.now() > otpData.expiryTime) {
+      await Otp.deleteOne({ email, purpose: "login" });
       throw new ApiError(410, "OTP has expired. Please request a new one.");
     }
 
-    if (Number(otp) !== Number(storedOtpData.otp)) {
+    if (Number(otp) !== Number(otpData.otp)) {
       throw new ApiError(400, "Invalid OTP. Please try again.");
     }
 
     const existingUser = await User.findOne({ email });
-    if (!existingUser) {
-      throw new ApiError(404, "User not found.");
-    }
+    if (!existingUser) throw new ApiError(404, "User not found");
 
-    if (existingUser.isUserVerified !== true) {
-      throw new ApiError(403, "Account is not verified for login.");
-    }
-
-    loginOtpStore.delete(email);
+    await Otp.deleteOne({ email, purpose: "login" });
 
     const token = jwt.sign(
       { id: existingUser._id, email: existingUser.email },
@@ -194,9 +205,11 @@ export const loginOtpVerifier = async (req, res, next) => {
       { expiresIn: "1h" }
     );
 
-    return res.status(200).json(
-      new ApiResponse(200, { token }, "✅ Login successful! Welcome back.")
-    );
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(200, { token }, "✅ Login successful! Welcome back.")
+      );
   } catch (error) {
     if (!(error instanceof ApiError)) {
       error = new ApiError(500, "Internal Server Error", [error.message]);
@@ -204,131 +217,3 @@ export const loginOtpVerifier = async (req, res, next) => {
     next(error);
   }
 };
-
-
-
-// export const loginOtp = async (req, res) => {
-//   try {
-//     const {
-//       username,
-//       email,
-//       password,
-//       fullName,
-//       gender,
-//       course,
-//       branch,
-//       crn,
-//       urn,
-//       year,
-//       phone,
-//     } = req.body;
-
-//     if (!email || !username || !password) {
-//       return res
-//         .status(400)
-//         .json({ error: "Username, email, and password are required." });
-//     }
-
-//     // Check if user already exists
-//     const existingUser = await User.findOne({ $or: [{ email }, { username }] });
-//     if (existingUser) {
-//       return res
-//         .status(400)
-//         .json({ error: "User with this email or username already exists." });
-//     }
-
-//     const { otp, expiryTime } = otpGenerator();
-
-//     // Hash password before storing
-//     const hashedPassword = await bcrypt.hash(password, 10);
-
-//     // Temporarily store all data until OTP verified
-//     otpStore.set(email, {
-//       otp,
-//       expiryTime,
-//       userData: {
-//         username,
-//         email,
-//         password: hashedPassword,
-//         fullName,
-//         gender,
-//         course,
-//         branch,
-//         crn,
-//         urn,
-//         year,
-//         phone,
-//       },
-//     });
-
-//     mailSender();
-
-//     return res.status(200).json({
-//       success: true,
-//       message: "OTP sent successfully to your email.",
-//       email,
-//     });
-//   } catch (error) {
-//     console.error("Error sending OTP:", error);
-//     res.status(500).json({ error: "Failed to send OTP" });
-//   }
-// };
-
-// /* ------------------------ VERIFY OTP + SAVE USER DATA ------------------------ */
-// export const verifyOtp = async (req, res) => {
-//   try {
-//     const { email, otp } = req.body;
-
-//     if (!email || !otp) {
-//       return res.status(400).json({ error: "Email and OTP are required." });
-//     }
-
-//     const otpData = otpStore.get(email);
-
-//     if (!otpData) {
-//       return res.status(400).json({ error: "No OTP found for this email." });
-//     }
-
-//     // Check if OTP expired
-//     if (Date.now() > otpData.expiryTime) {
-//       otpStore.delete(email);
-//       return res.status(400).json({ error: "OTP has expired." });
-//     }
-
-//     // Check if OTP matches
-//     if (Number(otp) !== otpData.otp) {
-//       return res.status(400).json({ error: "Invalid OTP." });
-//     }
-
-//     // ✅ If verified: either create new or update existing user
-//     const existingUser = await User.findOne({ email });
-
-//     if (existingUser) {
-//       // Update existing user (if already created partially)
-//       await User.updateOne(
-//         { email },
-//         {
-//           ...otpData.userData,
-//           isEmailVerified: true,
-//         }
-//       );
-//     } else {
-//       // Create new user (if not created yet)
-//       await User.create({
-//         ...otpData.userData,
-//         isEmailVerified: true,
-//       });
-//     }
-
-//     // Cleanup memory store
-//     otpStore.delete(email);
-
-//     return res.status(200).json({
-//       success: true,
-//       message: "OTP verified and user details saved successfully!",
-//     });
-//   } catch (error) {
-//     console.error("Error verifying OTP:", error);
-//     res.status(500).json({ error: "Failed to verify OTP" });
-//   }
-// };

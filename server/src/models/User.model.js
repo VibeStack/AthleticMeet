@@ -21,10 +21,10 @@ const userSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
       trim: true,
-      match: [
-        /^[a-zA-Z0-9._%+-]+@gndec\.ac\.in$/,
-        "Valid emails must end with @gndec.ac.in",
-      ],
+      // match: [
+      //   /^[a-zA-Z0-9._%+-]+@gndec\.ac\.in$/,
+      //   "Valid emails must end with @gndec.ac.in",
+      // ],
     },
 
     password: {
@@ -102,10 +102,12 @@ const userSchema = new mongoose.Schema(
       immutable: true,
     },
 
-    isUserVerified: {
-      type: Boolean,
-      default: false,
+    isUserDetailsComplete: {
+      type: String,
+      enum: ["false", "partial", "true"],
+      default: "false",
     },
+
     // avtar: {
     //   type: String,
     // },

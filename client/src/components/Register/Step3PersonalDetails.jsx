@@ -226,7 +226,12 @@ export default function Step3PersonalDetails({ nextStep, prevStep }) {
       {message && (
         <p
           className={`text-center text-sm mt-4 ${
-            message.includes("successfully") ? "text-green-600" : "text-red-600"
+            [
+              "Registration completed successfully!",
+              "Saving your registration details...",
+            ].some((txt) => message.includes(txt))
+              ? "text-green-600"
+              : "text-red-600"
           }`}
         >
           {message}
