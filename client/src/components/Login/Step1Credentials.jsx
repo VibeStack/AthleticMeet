@@ -1,7 +1,7 @@
 import React from "react";
 import { useFormContext } from "react-hook-form";
 import InputField from "./InputField";
-import { UserIcon, MailIcon, LockIcon } from "../Register/SvgCollection";
+import { UserIcon, MailIcon, LockIcon } from "../Helpers/SvgCollection";
 import axios from "axios";
 
 export default function Step1Credentials({ nextStep }) {
@@ -87,10 +87,10 @@ export default function Step1Credentials({ nextStep }) {
         register={register}
         rules={{
           required: { value: true, message: "Email is required" },
-          pattern: {
-            value: /^[a-zA-Z0-9._%+-]+@gndec\.ac\.in$/,
-            message: "Valid College Mail must end with @gndec.ac.in",
-          },
+          // pattern: {
+          //   value: /^[a-zA-Z0-9._%+-]+@gndec\.ac\.in$/,
+          //   message: "Valid College Mail must end with @gndec.ac.in",
+          // },
         }}
         errors={errors}
       />

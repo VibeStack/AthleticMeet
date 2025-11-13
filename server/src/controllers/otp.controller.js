@@ -175,7 +175,7 @@ export const loginOtpSender = async (req, res, next) => {
         new ApiResponse(
           200,
           null,
-          "✅ Login OTP sent successfully! Please verify to continue."
+          "Login OTP sent successfully! Please verify to continue."
         )
       );
   } catch (error) {
@@ -187,12 +187,12 @@ export const loginOtpSender = async (req, res, next) => {
 
 export const loginOtpVerifier = async (req, res, next) => {
   try {
-    const { email, otp } = req.body;
+    const { email, password, otp } = req.body;
 
-    if (!email || !otp) throw new ApiError(400, "Email and OTP are required");
+    if (!email || !otp || !password)
+      throw new ApiError(400, "Email, password and OTP are required");
 
     const otpData = await Otp.findOne({ email, purpose: "login" });
-
     if (!otpData)
       throw new ApiError(
         404,
@@ -208,22 +208,23 @@ export const loginOtpVerifier = async (req, res, next) => {
       throw new ApiError(400, "Invalid OTP. Please try again.");
     }
 
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email }).select("+password");
     if (!existingUser) throw new ApiError(404, "User not found");
+
+    const isPasswordValid = await existingUser.isPasswordCorrect(password);
+    if (!isPasswordValid) {
+      throw new ApiError(401, "Incorrect password. Please try again.");
+    }
 
     await Otp.deleteOne({ email, purpose: "login" });
 
-    const token = jwt.sign(
-      { id: existingUser._id, email: existingUser.email },
-      process.env.JWT_SECRET,
-      { expiresIn: "1h" }
+    return res.status(200).json(
+      new ApiResponse(
+        200,
+        null,
+        "Login successful! Welcome back."
+      )
     );
-
-    return res
-      .status(200)
-      .json(
-        new ApiResponse(200, { token }, "✅ Login successful! Welcome back.")
-      );
   } catch (error) {
     if (!(error instanceof ApiError)) {
       error = new ApiError(500, "Internal Server Error", [error.message]);
@@ -231,3 +232,5 @@ export const loginOtpVerifier = async (req, res, next) => {
     next(error);
   }
 };
+
+

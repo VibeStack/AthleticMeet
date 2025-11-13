@@ -1,9 +1,10 @@
 // components/Register/Step2EmailOtp.jsx
 import React, { useRef } from "react";
 import { useFormContext } from "react-hook-form";
+import axios from "axios";
 
 export default function Step2EmailOtp({ nextStep, prevStep }) {
-  const { register, setValue, handleSubmit } = useFormContext();
+  const { register, setValue, getValues, handleSubmit } = useFormContext();
   const otpRefs = useRef([]);
 
   const handleOtpChange = (index, value) => {
@@ -13,13 +14,31 @@ export default function Step2EmailOtp({ nextStep, prevStep }) {
     else if (!value && index > 0) otpRefs.current[index - 1]?.focus();
   };
 
-  const onSubmit = (data) => {
+  const onSubmit = async (data) => {
     const otp = Array.from({ length: 6 }, (_, i) => data[`otp${i}`]).join("");
-    if (otp.length === 6) {
-      console.log("Email OTP Verified:", otp);
-      nextStep();
-    } else {
-      alert("Please enter all 6 digits of the OTP.");
+
+    if (otp.length !== 6) {
+      alert("❌ Please enter all 6 digits of the OTP.");
+      return;
+    }
+
+    const email = getValues("email");
+    const password = getValues("password");
+    const API_URL = import.meta.env.VITE_API_URL;
+
+    try {
+      const response = await axios.post(
+        `${API_URL}/otp/loginOtpVerifier`,
+        { email, password, otp },
+        { withCredentials: true }
+      );
+
+      if (response.data?.message === "Login successful! Welcome back.") {
+        nextStep();
+      }
+    } catch (error) {
+      const message = error.response?.data?.message || "OTP verification failed!";
+      alert(`❌ ${message}`);
     }
   };
 

@@ -1,6 +1,6 @@
 // components/Register/Step4Success.jsx
 import React from "react";
-import { CheckIcon } from "./SvgCollection";
+import { CheckIcon } from "../Helpers/SvgCollection";
 
 export default function Step4Success() {
   return (

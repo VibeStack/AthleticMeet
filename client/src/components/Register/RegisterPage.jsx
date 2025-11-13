@@ -13,8 +13,7 @@ export default function RegisterPage() {
   const nextStep = () => setStep((s) => s + 1);
   const prevStep = () => setStep((s) => s - 1);
 
-  const onSubmit = (data) => {
-    console.log("Final Registration Data:", data);
+  const onSubmit = () => {
     nextStep();
   };
 
