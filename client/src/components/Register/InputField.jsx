@@ -20,7 +20,7 @@ export default function InputField({
     <div className="mb-6 relative">
       <label
         htmlFor={id}
-        className="text-gray-700 font-semibold mb-1 ml-1 text-[16px]"
+        className="text-gray-700 font-bold mb-1 ml-1 text-[16px]"
       >
         {label}
       </label>
@@ -36,7 +36,7 @@ export default function InputField({
           id={id}
           type={inputType}
           placeholder={placeholder}
-          className={`px-4 w-full py-2 mt-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-[14px] text-[14px] placeholder:text-gray-400 placeholder:opacity-70 transition duration-200`}
+          className={`px-4 w-full py-2 mt-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-[14px] text-[14px] placeholder:text-gray-600 placeholder:opacity-70 transition duration-200`}
           {...register(id, rules)}
         />
 

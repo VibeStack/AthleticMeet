@@ -34,16 +34,13 @@ app.use(
 // router import
 import userRouter from "./routes/user.routes.js"
 import otpRouter from "./routes/emailOtpGenerator.routes.js"
+import authLoginRouter from "./routes/authLogin.routes.js"
 import { errorHandler } from "./middlewares/error.middleware.js";
 
 // router decleration
 app.use("/api/v1/users",userRouter)
 app.use("/api/v1/otp", otpRouter);
-
-// ping route
-app.get("/ping",(req,res)=>{
-  res.status(200).send("OK");
-})
+app.use("/api/v1/auth",authLoginRouter)
 
 app.use(errorHandler);
 

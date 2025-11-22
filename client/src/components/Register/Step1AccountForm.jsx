@@ -31,15 +31,14 @@ export default function Step1AccountForm({ nextStep,setStep }) {
         nextStep();
         return;
       }
-
-      if(response.data?.message === "Your email is already verified. Please complete your personal details."){
+      else if(response.data?.message === "Your email is already verified. Please complete your personal details."){
         alert("⚠️ Please complete your personal details.");
         setStep(3);
         return;
       }
-
-
-      alert("⚠️ Could not send OTP. Please try again.");
+      else{
+        alert("⚠️ Something Went Wrong!")
+      }
     } catch (error) {
       if (error.response) {
         const message = error.response.data.message;
@@ -111,10 +110,10 @@ export default function Step1AccountForm({ nextStep,setStep }) {
         register={register}
         rules={{
           required: { value: true, message: "Email is required" },
-          pattern: {
-            value: /^[a-zA-Z0-9._%+-]+@gndec\.ac\.in$/,
-            message: "Valid College Mail must end with @gndec.ac.in",
-          },
+          // pattern: {
+          //   value: /^[a-zA-Z0-9._%+-]+@gndec\.ac\.in$/,
+          //   message: "Valid College Mail must end with @gndec.ac.in",
+          // },
         }}
         errors={errors}
       />

@@ -8,13 +8,74 @@ export default function Step2EmailOtp({ nextStep, prevStep }) {
   const [loading, setLoading] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [message, setMessage] = useState("");
-  const [resendTimer, setResendTimer] = useState(0); // seconds left for resend
+  const [resendTimer, setResendTimer] = useState(0);
 
-  const handleOtpChange = (index, value) => {
-    if (!/^\d?$/.test(value)) return;
+  const handleKeyDown = (e, index) => {
+    const key = e.key;
+
+    // Allow navigation keys
+    if (["Tab", "ArrowLeft", "ArrowRight"].includes(key)) return;
+
+    // DIGIT typed
+    if (/^[0-9]$/.test(key)) {
+      e.preventDefault();
+
+      // Replace existing or fill empty
+      setValue(`otp${index}`, key);
+      otpRefs.current[index].value = key;
+
+      // Move forward
+      if (index < 5) {
+        otpRefs.current[index + 1].focus();
+        otpRefs.current[index + 1].select?.();
+      }
+      return;
+    }
+
+    // BACKSPACE behavior
+    if (key === "Backspace") {
+      e.preventDefault();
+      const current = otpRefs.current[index].value;
+
+      if (current) {
+        // If box has value → delete but stay here
+        setValue(`otp${index}`, "");
+        otpRefs.current[index].value = "";
+        return;
+      }
+
+      // If empty → move backward and clear previous
+      if (index > 0) {
+        setValue(`otp${index - 1}`, "");
+        otpRefs.current[index - 1].value = "";
+        otpRefs.current[index - 1].focus();
+      }
+    }
+  };
+
+  const handleChange = (e, index) => {
+    let value = e.target.value.replace(/\D/g, "").slice(-1);
+
     setValue(`otp${index}`, value);
-    if (value && index < 5) otpRefs.current[index + 1]?.focus();
-    else if (!value && index > 0) otpRefs.current[index - 1]?.focus();
+    otpRefs.current[index].value = value;
+
+    if (value && index < 5) {
+      otpRefs.current[index + 1].focus();
+    }
+  };
+
+  const handlePaste = (e) => {
+    e.preventDefault();
+    const paste = e.clipboardData.getData("text").replace(/\D/g, "");
+    const digits = paste.slice(0, 6).split("");
+
+    digits.forEach((d, i) => {
+      setValue(`otp${i}`, d);
+      otpRefs.current[i].value = d;
+    });
+
+    if (digits.length < 6) otpRefs.current[digits.length]?.focus();
+    else otpRefs.current[5]?.focus(); // optional auto-submit
   };
 
   /* ------------------------ AUTO COUNTDOWN ------------------------ */
@@ -29,30 +90,31 @@ export default function Step2EmailOtp({ nextStep, prevStep }) {
   /* ------------------------ SEND OTP ------------------------ */
   const sendOtp = async (isResend = false) => {
     try {
-      const email = getValues("email");
-      if (!email) return alert("Please enter your email first.");
+      if (resendTimer > 0) {
+        const email = getValues("email");
+        if (!email) return alert("Please enter your email first.");
 
-      setLoading(true);
-      setMessage(isResend ? "Resending OTP..." : "Sending OTP...");
+        setLoading(true);
+        setMessage(isResend ? "Resending OTP..." : "Sending OTP...");
 
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/otp/registerOtpSender`,
-        { email }
-      );
+        const response = await axios.post(
+          `${import.meta.env.VITE_API_URL}/otp/registerOtpSender`,
+          { email }
+        );
 
-      setOtpSent(true);
-      setResendTimer(30); // ⏳ 30 seconds cooldown
-      setMessage(
-        isResend
-          ? "A new OTP has been sent to your email."
-          : "OTP sent successfully to your email."
-      );
-    } 
-    catch (error) {
+        setMessage(
+          isResend
+            ? "A new OTP has been sent to your email."
+            : "OTP sent successfully to your email."
+        );
+      } else {
+        setMessage(`⏳ You can resend OTP after 2 minutes.`);
+      }
+    } catch (error) {
       setMessage("Failed to send OTP. Please try again.");
     } finally {
       setLoading(false);
-      setMessage("")
+      setMessage("");
     }
   };
 
@@ -106,76 +168,49 @@ export default function Step2EmailOtp({ nextStep, prevStep }) {
       </h3>
 
       {/* OTP Boxes */}
-      <div className="flex justify-center gap-3 mb-8">
+      <div className="flex justify-center gap-3 mb-8 relative">
         {Array.from({ length: 6 }).map((_, i) => (
           <input
             key={i}
             maxLength={1}
+            inputMode="numeric"
+            pattern="[0-9]*"
             {...register(`otp${i}`)}
             ref={(el) => (otpRefs.current[i] = el)}
-            onChange={(e) => handleOtpChange(i, e.target.value)}
+            onKeyDown={(e) => handleKeyDown(e, i)}
+            onChange={(e) => handleChange(e, i)}
+            onPaste={handlePaste}
             className="aspect-5/6 w-10 md:w-12 text-center border border-gray-300 rounded-lg text-lg
-              focus:outline-none focus:ring-2 focus:ring-blue-500 transition
-              shadow-sm font-bold"
+        focus:outline-none focus:ring-2 focus:ring-blue-500 transition shadow-sm font-bold"
           />
         ))}
+
+        {/* Message */}
+        {message && (
+          <p
+            className={`text-center text-sm absolute -bottom-8 ${
+              message.includes("success") || message.includes("✅")
+                ? "text-green-600"
+                : message.includes("Verifying")
+                ? "text-blue-600"
+                : "text-red-600"
+            }`}
+          >
+            {message}
+          </p>
+        )}
       </div>
 
-      {/* Message */}
-      {message && (
-        <p
-          className={`text-center text-sm mb-4 ${
-            message.includes("success") || message.includes("✅")
-              ? "text-green-600"
-              : message.includes("Verifying")
-              ? "text-blue-600"
-              : "text-red-600"
-          }`}
-        >
-          {message}
-        </p>
-      )}
-
       {/* Buttons */}
-      <div className="flex justify-between items-center mt-6">
-        <button
-          type="button"
-          onClick={prevStep}
-          className="px-5 py-2.5 bg-gray-100 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-200 transition"
-          disabled={loading}
-        >
-          Back
-        </button>
-
+      <div className="flex justify-center items-center mt-12">
         <button
           type="submit"
-          className="px-6 py-2.5 bg-linear-to-r from-blue-500 to-blue-600 text-white font-semibold rounded-lg shadow-md hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200"
+          className="w-full px-6 py-4 bg-linear-to-r from-blue-500 to-blue-600 text-white font-semibold rounded-lg shadow-md hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200"
           disabled={loading}
         >
           {loading ? "Verifying..." : "Verify OTP"}
         </button>
       </div>
-
-      {/* Resend OTP Section */}
-      <p className="text-sm text-gray-600 text-center mt-6">
-        Didn't receive the OTP?{" "}
-        <button
-          type="button"
-          className={`font-medium ${
-            resendTimer > 0
-              ? "text-gray-400 cursor-not-allowed"
-              : "text-blue-600 hover:underline"
-          }`}
-          onClick={() => sendOtp(true)}
-          disabled={resendTimer > 0 || loading}
-        >
-          {resendTimer > 0
-            ? `Resend in ${resendTimer}s`
-            : otpSent
-            ? "Resend OTP"
-            : "Send OTP"}
-        </button>
-      </p>
     </form>
   );
 }

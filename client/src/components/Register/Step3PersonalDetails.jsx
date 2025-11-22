@@ -90,7 +90,7 @@ export default function Step3PersonalDetails({ nextStep, prevStep }) {
       );
 
       setMessage("Registration completed successfully!");
-      nextStep();
+      // nextStep();
     } catch (error) {
       setMessage("Failed to complete registration.");
     } finally {
@@ -225,7 +225,7 @@ export default function Step3PersonalDetails({ nextStep, prevStep }) {
       {/* Message */}
       {message && (
         <p
-          className={`text-center text-sm mt-4 ${
+          className={`text-center text-sm absolute right-0.5 ${
             [
               "Registration completed successfully!",
               "Saving your registration details...",
@@ -239,15 +239,7 @@ export default function Step3PersonalDetails({ nextStep, prevStep }) {
       )}
 
       {/* Buttons */}
-      <div className="flex justify-between items-center mt-6">
-        <button
-          type="button"
-          onClick={prevStep}
-          className="px-5 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-200 transition"
-          disabled={loading}
-        >
-          Back
-        </button>
+      <div className="flex justify-center items-center mt-4">
         <button
           type="submit"
           className="px-6 py-2 bg-linear-to-r from-blue-500 to-blue-600 text-white font-semibold rounded-lg shadow-md hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200"

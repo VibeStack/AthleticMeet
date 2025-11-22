@@ -21,10 +21,10 @@ const userSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
       trim: true,
-      match: [
-        /^[a-zA-Z0-9._%+-]+@gndec\.ac\.in$/,
-        "Valid emails must end with @gndec.ac.in",
-      ],
+      // match: [
+      //   /^[a-zA-Z0-9._%+-]+@gndec\.ac\.in$/,
+      //   "Valid college email must end with @gndec.ac.in",
+      // ],
     },
 
     password: {
@@ -116,28 +116,27 @@ const userSchema = new mongoose.Schema(
     avtar: {
       type: String,
     },
-    
+
     refreshToken: {
       type: String,
     },
   },
   {
-    timestamps: true, // createdAt & updatedAt
-    versionKey: false, // remove __v
+    timestamps: true,
   }
 );
 
 // Index for performance
 userSchema.index({ username: 1, email: 1 });
 
-// Hide sensitive fields when sending JSON
 userSchema.set("toJSON", {
   transform: (doc, ret) => {
     delete ret.password;
-    delete ret.__v;
+    delete ret.refreshToken;
     return ret;
   },
 });
+
 
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();

@@ -8,29 +8,30 @@ export default function Step1Credentials({ nextStep }) {
   const {
     register,
     handleSubmit,
-    formState: { errors,isSubmitting },
+    formState: { errors, isSubmitting },
   } = useFormContext();
 
+  const API_URL = import.meta.env.VITE_API_URL;
+
   const onSubmit = async (data) => {
-    const API_URL = import.meta.env.VITE_API_URL;
+    console.log(API_URL)
     try {
-      const response = await axios.post(`${API_URL}/otp/loginOtpSender`, data, {
+      const response = await axios.post(`${API_URL}/auth/login`, data, {
         withCredentials: true,
       });
+
       if (response.data?.success) {
-        alert(
-          "✅ OTP sent to your email. Please verify to complete registration."
-        );
+        console.log(response.data)
+        alert("✅ Login successful!");
         nextStep();
       } else {
-        alert("⚠️ Could not send OTP. Please try again.");
+        alert("❌ Invalid credentials. Please try again.");
       }
     } catch (error) {
       if (error.response) {
-        console.error("❌ Error:", error.response.data);
-        alert(error.response.data.error || "Failed to send OTP.");
+        alert(error.response.data.error || "Login failed.");
       } else {
-        alert("Network error. Please try again later.");
+        alert("Network error. Please try again.");
       }
     }
   };
@@ -87,10 +88,10 @@ export default function Step1Credentials({ nextStep }) {
         register={register}
         rules={{
           required: { value: true, message: "Email is required" },
-          pattern: {
-            value: /^[a-zA-Z0-9._%+-]+@gndec\.ac\.in$/,
-            message: "Valid College Mail must end with @gndec.ac.in",
-          },
+          // pattern: {
+          //   value: /^[a-zA-Z0-9._%+-]+@gndec\.ac\.in$/,
+          //   message: "Valid College Mail must end with @gndec.ac.in",
+          // },
         }}
         errors={errors}
       />

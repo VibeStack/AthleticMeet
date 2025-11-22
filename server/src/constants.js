@@ -1,1 +1,1 @@
-export const DB_NAME = "students"
+export const DB_NAME = "athletix"

@@ -24,6 +24,8 @@ export const registerOtpSender = async (req, res, next) => {
     if (existingUser && existingUser.isUserDetailsComplete === "false") {
       const { otp, expiryTime } = otpGenerator();
 
+      console.log({otp,expiryTime})
+
       await Otp.findOneAndUpdate(
         { email, purpose: "registration" },
         { otp, expiryTime },
@@ -145,92 +147,5 @@ export const registerOtpVerifier = async (req, res, next) => {
   }
 };
 
-export const loginOtpSender = async (req, res, next) => {
-  try {
-    const { email } = req.body;
-
-    if (!email) throw new ApiError(400, "Email required");
-
-    const existingUser = await User.findOne({ email });
-
-    if (!existingUser)
-      throw new ApiError(404, "No account found with this email");
-
-    if (!existingUser.isUserDetailsComplete)
-      throw new ApiError(403, "Email not verified");
-
-    const { otp, expiryTime } = otpGenerator();
-
-    await Otp.findOneAndUpdate(
-      { email, purpose: "login" },
-      { otp, expiryTime },
-      { upsert: true }
-    );
-
-    await mailSender(email, otp);
-
-    return res
-      .status(200)
-      .json(
-        new ApiResponse(
-          200,
-          null,
-          "Login OTP sent successfully! Please verify to continue."
-        )
-      );
-  } catch (error) {
-    next(
-      error instanceof ApiError ? error : new ApiError(500, "Internal Error")
-    );
-  }
-};
-
-export const loginOtpVerifier = async (req, res, next) => {
-  try {
-    const { email, password, otp } = req.body;
-
-    if (!email || !otp || !password)
-      throw new ApiError(400, "Email, password and OTP are required");
-
-    const otpData = await Otp.findOne({ email, purpose: "login" });
-    if (!otpData)
-      throw new ApiError(
-        404,
-        "No OTP found for this email. Please request a new one."
-      );
-
-    if (Date.now() > otpData.expiryTime) {
-      await Otp.deleteOne({ email, purpose: "login" });
-      throw new ApiError(410, "OTP has expired. Please request a new one.");
-    }
-
-    if (Number(otp) !== Number(otpData.otp)) {
-      throw new ApiError(400, "Invalid OTP. Please try again.");
-    }
-
-    const existingUser = await User.findOne({ email }).select("+password");
-    if (!existingUser) throw new ApiError(404, "User not found");
-
-    const isPasswordValid = await existingUser.isPasswordCorrect(password);
-    if (!isPasswordValid) {
-      throw new ApiError(401, "Incorrect password. Please try again.");
-    }
-
-    await Otp.deleteOne({ email, purpose: "login" });
-
-    return res.status(200).json(
-      new ApiResponse(
-        200,
-        null,
-        "Login successful! Welcome back."
-      )
-    );
-  } catch (error) {
-    if (!(error instanceof ApiError)) {
-      error = new ApiError(500, "Internal Server Error", [error.message]);
-    }
-    next(error);
-  }
-};
 
 
