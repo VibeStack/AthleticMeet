@@ -1,111 +1,104 @@
-import React from 'react';
-import { Linkedin, Github, Globe } from '../../icons/index.jsx';
+import React from "react";
+import { Linkedin, Github, Globe } from "../../icons/index.jsx";
 
 const Team = ({ darkMode }) => {
-    const devTeam = [
-        {
-            name: 'Aryan Sharma',
-            role: 'Full Stack Developer',
-            image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
-            linkedin: '#',
-            github: '#',
-            portfolio: '#',
-            gradient: 'from-cyan-500 to-blue-600'
-        },
-        {
-            name: 'Priya Patel',
-            role: 'UI/UX Designer',
-            image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
-            linkedin: '#',
-            github: '#',
-            portfolio: '#',
-            gradient: 'from-purple-500 to-pink-600'
-        },
-        {
-            name: 'Rahul Kumar',
-            role: 'Backend Developer',
-            image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
-            linkedin: '#',
-            github: '#',
-            portfolio: '#',
-            gradient: 'from-orange-500 to-red-600'
-        },
-        {
-            name: 'Ananya Singh',
-            role: 'Frontend Developer',
-            image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop',
-            linkedin: '#',
-            github: '#',
-            portfolio: '#',
-            gradient: 'from-green-500 to-teal-600'
-        }
-    ];
+  const devTeam = [
+    {
+      name: "Arshdeep Anand",
+      role: "Full Stack Developer",
+      image: "/images/MyProfessionalPic.png",
+      linkedin: "#",
+      github: "#",
+      portfolio: "#",
+      gradient: "from-gray-300 to-white-100",
+    },
+  ];
 
-    return (
-        <section id="team" className={`py-16 sm:py-20 md:py-24 ${darkMode ? 'bg-gray-800' : 'bg-linear-to-b from-gray-50 to-white'}`}>
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="text-center mb-12 sm:mb-16">
-                    <span className="inline-block px-4 py-2 bg-blue-500/10 rounded-full text-blue-500 font-semibold text-sm mb-4">
-                        Our Team
-                    </span>
-                    <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black mb-4 bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                        Meet the Dev Team
-                    </h2>
-                    <p className={`text-lg sm:text-xl ${darkMode ? 'text-gray-400' : 'text-gray-600'} max-w-2xl mx-auto`}>
-                        The minds behind this platform
-                    </p>
+  return (
+    <section
+      id="team"
+      className={`py-16 sm:py-20 md:py-24 ${
+        darkMode ? "bg-gray-800" : "bg-linear-to-b from-gray-50 to-white"
+      }`}
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-12 sm:mb-16">
+          <span className="inline-block px-4 py-2 bg-blue-500/10 rounded-full text-blue-500 font-semibold text-sm mb-4">
+            Our Team
+          </span>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black mb-4 bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Meet the Dev Team
+          </h2>
+          <p
+            className={`text-lg sm:text-xl ${
+              darkMode ? "text-gray-400" : "text-gray-600"
+            } text-center`}
+          >
+            The Minds Behind This Platform
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-8 justify-center">
+          {devTeam.map((dev, idx) => (
+            <div
+              key={idx}
+              className={`group rounded-3xl overflow-hidden ${
+                darkMode ? "bg-gray-900" : "bg-white"
+              } shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 w-[350px] my-4`}
+            >
+              <div className="relative overflow-hidden h-64 sm:h-72">
+                <img
+                  src={dev.image}
+                  alt={dev.name}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                />
+                <div
+                  className={`absolute inset-0 bg-linear-to-t ${dev.gradient} opacity-0 group-hover:opacity-90 transition-opacity duration-500 flex items-end justify-center pb-6`}
+                >
+                  <div className="flex gap-3 transform translate-y-10 group-hover:translate-y-0 transition-transform duration-500">
+                    <a
+                      href={dev.linkedin}
+                      className="p-3 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-white/30 transition-all hover:scale-110"
+                    >
+                      <Linkedin className="w-5 h-5" />
+                    </a>
+                    <a
+                      href={dev.github}
+                      className="p-3 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-white/30 transition-all hover:scale-110"
+                    >
+                      <Github className="w-5 h-5" />
+                    </a>
+                    <a
+                      href={dev.portfolio}
+                      className="p-3 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-white/30 transition-all hover:scale-110"
+                    >
+                      <Globe className="w-5 h-5" />
+                    </a>
+                  </div>
                 </div>
+              </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
-                    {devTeam.map((dev, idx) => (
-                        <div
-                            key={idx}
-                            className={`group rounded-3xl overflow-hidden ${darkMode ? 'bg-gray-900' : 'bg-white'
-                                } shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3`}
-                        >
-                            <div className="relative overflow-hidden h-64 sm:h-72">
-                                <img
-                                    src={dev.image}
-                                    alt={dev.name}
-                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                                />
-                                <div className={`absolute inset-0 bg-linear-to-t ${dev.gradient} opacity-0 group-hover:opacity-90 transition-opacity duration-500 flex items-end justify-center pb-6`}>
-                                    <div className="flex gap-3 transform translate-y-10 group-hover:translate-y-0 transition-transform duration-500">
-                                        <a
-                                            href={dev.linkedin}
-                                            className="p-3 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-white/30 transition-all hover:scale-110"
-                                        >
-                                            <Linkedin className="w-5 h-5" />
-                                        </a>
-                                        <a
-                                            href={dev.github}
-                                            className="p-3 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-white/30 transition-all hover:scale-110"
-                                        >
-                                            <Github className="w-5 h-5" />
-                                        </a>
-                                        <a
-                                            href={dev.portfolio}
-                                            className="p-3 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-white/30 transition-all hover:scale-110"
-                                        >
-                                            <Globe className="w-5 h-5" />
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="p-6">
-                                <h3 className="text-xl sm:text-2xl font-bold mb-1">{dev.name}</h3>
-                                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-4`}>
-                                    {dev.role}
-                                </p>
-                                <div className={`h-1 w-16 bg-linear-to-r ${dev.gradient} rounded-full`}></div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
+              <div className="p-6">
+                <h3 className="text-xl sm:text-2xl font-bold mb-1">
+                  {dev.name}
+                </h3>
+                <p
+                  className={`text-sm ${
+                    darkMode ? "text-gray-400" : "text-gray-600"
+                  } mb-4`}
+                >
+                  {dev.role}
+                </p>
+                <div
+                  className={`h-1 w-16 bg-linear-to-r ${dev.gradient} rounded-full`}
+                ></div>
+              </div>
             </div>
-        </section>
-    );
+          ))}
+        </div>
+      </div>
+    </section>
+  );
 };
 
 export default Team;

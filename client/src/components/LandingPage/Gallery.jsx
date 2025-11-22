@@ -10,7 +10,7 @@ const Gallery = ({ darkMode }) => {
         'https://images.unsplash.com/photo-1556817411-31ae72fa3ea0?w=600&h=400&fit=crop',
         'https://images.unsplash.com/photo-1426927308491-6380b6a9936f?w=600&h=400&fit=crop',
         'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600&h=400&fit=crop',
-        'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&h=400&fit=crop'
+        
     ];
 
     return (
@@ -24,7 +24,7 @@ const Gallery = ({ darkMode }) => {
                         Gallery
                     </h2>
                     <p className={`text-lg sm:text-xl ${darkMode ? 'text-gray-400' : 'text-gray-600'} max-w-2xl mx-auto`}>
-                        Moments of glory and determination
+                        Moments of Glory And Determination
                     </p>
                 </div>
 
