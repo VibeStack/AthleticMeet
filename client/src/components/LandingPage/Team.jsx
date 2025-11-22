@@ -90,7 +90,7 @@ const Team = ({ darkMode }) => {
                   {dev.role}
                 </p>
                 <div
-                  className={`h-1 w-16 bg-linear-to-r ${dev.gradient} rounded-full`}
+                  className={`h-1 w-36 bg-linear-to-r ${dev.gradient} rounded-full`}
                 ></div>
               </div>
             </div>

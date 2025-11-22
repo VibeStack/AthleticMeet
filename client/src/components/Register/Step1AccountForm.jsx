@@ -63,7 +63,7 @@ export default function Step1AccountForm({ nextStep,setStep }) {
       onSubmit={handleSubmit(onSubmit)}
       className="bg-white shadow-lg rounded-xl w-full max-w-md p-6 sm:p-8 mx-auto border border-gray-100 transition-all duration-300 hover:shadow-xl"
     >
-      {/* Header */}
+
       <div className="text-center mb-4">
         <img
           src="/images/gne_logo.png"
@@ -78,12 +78,12 @@ export default function Step1AccountForm({ nextStep,setStep }) {
         </p>
       </div>
 
-      {/* Form Title */}
+
       <h3 className="text-[16px] sm:text-xl font-extrabold text-center mb-6 bg-linear-to-r from-blue-500 via-blue-600 to-blue-700 bg-clip-text text-transparent tracking-wide">
         Create Your Account
       </h3>
 
-      {/* Input Fields */}
+
       <InputField
         label="Username"
         id="username"
@@ -110,10 +110,10 @@ export default function Step1AccountForm({ nextStep,setStep }) {
         register={register}
         rules={{
           required: { value: true, message: "Email is required" },
-          // pattern: {
-          //   value: /^[a-zA-Z0-9._%+-]+@gndec\.ac\.in$/,
-          //   message: "Valid College Mail must end with @gndec.ac.in",
-          // },
+          pattern: {
+            value: /^[a-zA-Z0-9._%+-]+@gndec\.ac\.in$/,
+            message: "Valid College Mail must end with @gndec.ac.in",
+          },
         }}
         errors={errors}
       />
@@ -134,7 +134,6 @@ export default function Step1AccountForm({ nextStep,setStep }) {
         errors={errors}
       />
 
-      {/* Submit Button */}
       <button
         type="submit"
         className={`w-full mt-12 py-3 px-4 bg-linear-to-r from-blue-500 to-blue-600 text-white font-bold rounded-lg shadow-md hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200 flex items-center justify-center gap-2 ${
@@ -173,7 +172,6 @@ export default function Step1AccountForm({ nextStep,setStep }) {
         )}
       </button>
 
-      {/* Footer */}
       <p className="text-sm text-gray-600 text-center mt-6">
         Already have an account?{" "}
         <a href="/login" className="text-blue-600 hover:underline font-medium">

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Trophy, Sun, Moon, Menu, X } from "../../icons/index.jsx";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const Navbar = ({ darkMode, setDarkMode, activeSection, scrollToSection }) => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -43,7 +43,7 @@ const Navbar = ({ darkMode, setDarkMode, activeSection, scrollToSection }) => {
               <span className="font-black text-xl md:text-2xl bg-linear-to-r from-cyan-500 via-blue-500 to-purple-500 bg-clip-text text-transparent">
                 Athletic Meet
               </span>
-              <p className="text-xs text-gray-500 hidden sm:block">2025</p>
+              <p className="text-xs font-bold hidden sm:block bg-linear-to-r from-cyan-500 via-blue-500 to-purple-500 bg-clip-text text-transparent">2025</p>
             </div>
           </div>
 

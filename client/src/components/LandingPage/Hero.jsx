@@ -7,19 +7,23 @@ import {
   Award,
   Trophy,
 } from "../../icons/index.jsx";
+import CountdownTimer from "./CountdownTimer.jsx";
+import { useNavigate } from "react-router-dom";
 
 const Hero = ({ scrollToSection }) => {
   const stats = [
     { value: "500+", label: "Athletes", icon: <Users className="w-8 h-8" /> },
     { value: "25+", label: "Events", icon: <Award className="w-8 h-8" /> },
-    { value: "3", label: "Days", icon: <Timer className="w-8 h-8" /> },
+    { value: "2", label: "Event Duration (Days)", icon: <Timer className="w-8 h-8" /> },
     { value: "10+", label: "Records", icon: <Star className="w-8 h-8" /> },
   ];
+
+  const navigate = useNavigate();
 
   return (
     <section
       id="home"
-      className="relative min-h-screen flex items-center justify-center overflow-hidden py-4"
+      className="relative min-h-screen flex items-center justify-center overflow-hidden py-24"
     >
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-linear-to-br from-blue-900/95 via-purple-900/45 to-cyan-900/95 z-10"></div>
@@ -48,6 +52,8 @@ const Hero = ({ scrollToSection }) => {
           </span>
         </h1>
 
+        <CountdownTimer />
+
         <p className="text-lg sm:text-xl md:text-2xl mb-10 text-cyan-100 font-light max-w-4xl mx-auto leading-relaxed px-4">
           "Champions aren't made in gyms. Champions are made from something they
           have deep inside them—a desire, a dream, a vision."
@@ -55,7 +61,7 @@ const Hero = ({ scrollToSection }) => {
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
           <button className="group relative px-8 py-4 bg-linear-to-r from-cyan-500 to-blue-600 text-white rounded-full font-bold text-base sm:text-lg overflow-hidden transform hover:scale-105 transition-all duration-300 shadow-2xl w-full sm:w-auto">
-            <span className="relative z-10">Register Now</span>
+            <span className="relative z-10" onClick={()=> navigate("/register")}>Register Now</span>
             <div className="absolute inset-0 bg-linear-to-r from-blue-600 to-purple-600 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300"></div>
           </button>
           <button
