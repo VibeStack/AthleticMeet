@@ -32,7 +32,7 @@ const CountdownTimer = () => {
       } else {
         setTimeLeft(tl);
       }
-    }, 1000);
+    });
 
     return () => clearInterval(timer);
   }, [targetDate]);
